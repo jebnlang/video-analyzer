@@ -165,26 +165,48 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
 // Update Blob upload endpoint for token generation
 app.post('/api/upload', async (req, res) => {
   try {
+    console.log('Received upload request');
+    console.log('Query parameters:', req.query);
+    console.log('Headers:', req.headers);
+    console.log('Environment variables:', {
+      BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN ? 'Present' : 'Missing',
+      BLOB_READ_WRITE_TOKEN_GENERATED_AT: process.env.BLOB_READ_WRITE_TOKEN_GENERATED_AT ? 'Present' : 'Missing'
+    });
+
     const { filename, contentType } = req.query;
     
     if (!filename || !contentType) {
+      console.log('Missing parameters:', { filename, contentType });
       return res.status(400).json({ 
         error: 'Missing required parameters',
-        message: 'filename and contentType are required query parameters'
+        message: 'filename and contentType are required query parameters',
+        received: { filename, contentType }
       });
     }
 
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('BLOB_READ_WRITE_TOKEN is not set');
+      return res.status(500).json({
+        error: 'Configuration Error',
+        message: 'Blob storage is not properly configured'
+      });
+    }
+
+    console.log('Attempting to generate token for:', { filename, contentType });
     const token = await getToken({
       pathname: filename as string,
       contentType: contentType as string,
     });
 
+    console.log('Token generated successfully');
     res.json(token);
   } catch (error) {
-    console.error('Error generating upload token:', error);
+    console.error('Detailed error in token generation:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ 
       error: 'Failed to generate upload token',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      type: error instanceof Error ? error.constructor.name : typeof error
     });
   }
 });

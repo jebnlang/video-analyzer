@@ -175,43 +175,67 @@ function App() {
       let analysisResponse;
 
       if (file) {
-        // Upload to Vercel Blob
-        const blob = await upload(file.name, file, {
-          access: 'public',
-          handleUploadUrl: `${baseUrl}/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
-          onUploadProgress: (progress: { percentage: number }) => {
-            console.log(`Upload progress: ${progress.percentage}%`);
-          },
-        });
+        try {
+          console.log('Starting file upload process');
+          console.log('File details:', {
+            name: file.name,
+            type: file.type,
+            size: formatFileSize(file.size)
+          });
 
-        // Create video element to get duration
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.src = URL.createObjectURL(file);
-        
-        await new Promise((resolve) => {
-          video.onloadedmetadata = () => {
-            URL.revokeObjectURL(video.src);
-            resolve(null);
+          const uploadUrl = `${baseUrl}/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`;
+          console.log('Upload URL:', uploadUrl);
+
+          // Upload to Vercel Blob
+          const blob = await upload(file.name, file, {
+            access: 'public',
+            handleUploadUrl: uploadUrl,
+            onUploadProgress: (progress: { percentage: number }) => {
+              console.log(`Upload progress: ${progress.percentage}%`);
+            },
+          });
+
+          console.log('Upload successful:', blob);
+
+          // Create video element to get duration
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.src = URL.createObjectURL(file);
+          
+          await new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+              URL.revokeObjectURL(video.src);
+              resolve(null);
+            };
+          });
+
+          metadata = {
+            fileSize: formatFileSize(file.size),
+            duration: formatDuration(Math.floor(video.duration || 0))
           };
-        });
 
-        metadata = {
-          fileSize: formatFileSize(file.size),
-          duration: formatDuration(Math.floor(video.duration || 0))
-        };
+          console.log('Video metadata:', metadata);
 
-        // Send blob URL to analysis endpoint
-        analysisResponse = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
+          // Send blob URL to analysis endpoint
+          console.log('Sending to analysis endpoint:', {
             url: blob.url,
-            metadata 
-          }),
-        });
+            metadata
+          });
+
+          analysisResponse = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              url: blob.url,
+              metadata 
+            }),
+          });
+        } catch (uploadError) {
+          console.error('Upload error details:', uploadError);
+          throw new Error(`File upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+        }
       } else if (url) {
         analysisResponse = await fetch(apiUrl, {
           method: 'POST',
