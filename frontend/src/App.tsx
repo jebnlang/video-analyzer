@@ -90,6 +90,12 @@ interface VideoAnalysisResult {
 
 // Add size constants
 const MAX_FILE_SIZE = 19.9 * 1024 * 1024; // 19.9MB in bytes
+const SUPPORTED_FORMATS = [
+  'video/mp4',
+  'video/quicktime', // .mov files
+  'video/x-msvideo', // .avi files
+  'video/webm',
+];
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
@@ -124,6 +130,12 @@ function App() {
       // Check file size
       if (selectedFile.size > MAX_FILE_SIZE) {
         setError(`File size exceeds 19.9MB limit. Your file is ${formatFileSize(selectedFile.size)}`);
+        return;
+      }
+
+      // Check file format
+      if (!SUPPORTED_FORMATS.includes(selectedFile.type)) {
+        setError(`Unsupported file format. Please upload: ${SUPPORTED_FORMATS.map(format => format.split('/')[1]).join(', ')}`);
         return;
       }
 
@@ -260,7 +272,7 @@ function App() {
                     )}
                     <VisuallyHiddenInput
                       type="file"
-                      accept="video/*"
+                      accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
                       onChange={handleFileChange}
                     />
                   </Button>
