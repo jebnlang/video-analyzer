@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { VideoAnalyzer } from './services/videoAnalyzer';
 import { GeminiAnalyzer } from './services/geminiAnalyzer';
-import { put } from '@vercel/blob';
+import { put, getToken } from '@vercel/blob';
 
 // Load environment variables
 dotenv.config();
@@ -162,28 +162,28 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
   }
 });
 
-// Add Blob upload endpoint
-app.post('/api/upload', upload.single('file'), async (req, res) => {
+// Update Blob upload endpoint for token generation
+app.post('/api/upload', async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+    const { filename, contentType } = req.query;
+    
+    if (!filename || !contentType) {
+      return res.status(400).json({ 
+        error: 'Missing required parameters',
+        message: 'filename and contentType are required query parameters'
+      });
     }
 
-    const filename = req.body.filename || req.file.originalname;
-    
-    const blob = await put(filename, req.file.buffer, {
-      access: 'public',
-      addRandomSuffix: true,
+    const token = await getToken({
+      pathname: filename as string,
+      contentType: contentType as string,
     });
 
-    res.json({
-      url: blob.url,
-      success: true
-    });
+    res.json(token);
   } catch (error) {
-    console.error('Error uploading to blob storage:', error);
+    console.error('Error generating upload token:', error);
     res.status(500).json({ 
-      error: 'Failed to upload file',
+      error: 'Failed to generate upload token',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

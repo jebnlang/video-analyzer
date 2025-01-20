@@ -175,13 +175,10 @@ function App() {
       let analysisResponse;
 
       if (file) {
-        const formData = new FormData();
-        formData.append('filename', file.name);
-        formData.append('file', file);
-
-        const blob = await upload(file.name, formData, {
+        // Upload to Vercel Blob
+        const blob = await upload(file.name, file, {
           access: 'public',
-          handleUploadUrl: `${baseUrl}/api/upload`,
+          handleUploadUrl: `${baseUrl}/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
           onUploadProgress: (progress: { percentage: number }) => {
             console.log(`Upload progress: ${progress.percentage}%`);
           },
