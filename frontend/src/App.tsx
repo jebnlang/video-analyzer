@@ -179,7 +179,7 @@ function App() {
         const blob = await upload(file.name, file, {
           access: 'public',
           handleUploadUrl: `${baseUrl}/api/upload`,
-          onUploadProgress: (progress) => {
+          onUploadProgress: (progress: { percentage: number }) => {
             console.log(`Upload progress: ${progress.percentage}%`);
           },
         });
