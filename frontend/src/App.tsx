@@ -25,6 +25,7 @@ import {
   Timer as TimerIcon
 } from '@mui/icons-material'
 import { styled } from '@mui/material/styles'
+import { upload } from '@vercel/blob/client'
 
 // Styled components
 const VisuallyHiddenInput = styled('input')({
@@ -166,16 +167,24 @@ function App() {
     setResults(null)
 
     try {
-      // Remove trailing slash from VITE_API_URL if present
       const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '');
       const apiUrl = `${baseUrl}/api/analyze/gemini`;
       console.log('Sending request to:', apiUrl);
 
-      const formData = new FormData()
       let metadata = null;
+      let analysisResponse;
 
       if (file) {
-        // Create a video element to get duration
+        // Upload to Vercel Blob first
+        const blob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: `${baseUrl}/api/upload`,
+          onUploadProgress: (progress) => {
+            console.log(`Upload progress: ${progress.percentage}%`);
+          },
+        });
+
+        // Create video element to get duration
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.src = URL.createObjectURL(file);
@@ -187,35 +196,41 @@ function App() {
           };
         });
 
-        formData.append('video', file);
-        
-        // Prepare metadata
         metadata = {
           fileSize: formatFileSize(file.size),
           duration: formatDuration(Math.floor(video.duration || 0))
         };
+
+        // Send blob URL to analysis endpoint
+        analysisResponse = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            url: blob.url,
+            metadata 
+          }),
+        });
       } else if (url) {
-        formData.append('url', url)
-        console.log('Sending URL:', url);
+        analysisResponse = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url }),
+        });
       } else {
         throw new Error('Please provide a video file or URL')
       }
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: file ? formData : JSON.stringify({ url }),
-        headers: file ? undefined : {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (!analysisResponse.ok) {
+        const errorText = await analysisResponse.text();
         console.error('Error response:', errorText);
-        throw new Error(`Failed to analyze video: ${response.status} ${errorText}`);
+        throw new Error(`Failed to analyze video: ${analysisResponse.status} ${errorText}`);
       }
 
-      const data = await response.json();
+      const data = await analysisResponse.json();
       if (metadata) {
         data.metadata = metadata;
       }

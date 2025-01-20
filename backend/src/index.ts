@@ -121,22 +121,38 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
   try {
     console.log('Received request for Gemini analysis');
     console.log('Headers:', req.headers);
-    console.log('File size:', req.file?.size);
-    console.log('File:', req.file ? 'Present' : 'Not present');
     console.log('Body:', req.body);
 
-    if (req.file && req.file.size > 20 * 1024 * 1024) {
-      return res.status(413).json({
-        error: 'File Too Large',
-        message: 'The uploaded file exceeds the 20MB limit'
-      });
+    let videoContent;
+    
+    if (req.file) {
+      if (req.file.size > 20 * 1024 * 1024) {
+        return res.status(413).json({
+          error: 'File Too Large',
+          message: 'The uploaded file exceeds the 20MB limit'
+        });
+      }
+      videoContent = req.file.buffer;
+    } else if (req.body.url) {
+      // Handle both direct URLs and Blob URLs
+      const response = await fetch(req.body.url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video from URL: ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      videoContent = Buffer.from(arrayBuffer);
+    } else {
+      return res.status(400).json({ error: 'No video content provided' });
     }
 
-    const videoContent = req.file ? req.file.buffer : req.body.url;
-    console.log('Processing video content type:', req.file ? 'buffer' : 'url');
-
+    console.log('Processing video content');
     const result = await geminiAnalyzer.analyzeVideo(videoContent);
     console.log('Analysis completed successfully');
+    
+    // If metadata was provided, include it in the response
+    if (req.body.metadata) {
+      result.metadata = req.body.metadata;
+    }
     
     res.json(result);
   } catch (error) {
