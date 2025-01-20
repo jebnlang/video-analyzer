@@ -183,13 +183,10 @@ function App() {
             size: formatFileSize(file.size)
           });
 
-          const uploadUrl = `${baseUrl}/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`;
-          console.log('Upload URL:', uploadUrl);
-
-          // Upload to Vercel Blob
+          // Upload directly to Vercel Blob
           const blob = await upload(file.name, file, {
             access: 'public',
-            handleUploadUrl: uploadUrl,
+            handleUploadUrl: `${baseUrl}/api/upload`,
             onUploadProgress: (progress: { percentage: number }) => {
               console.log(`Upload progress: ${progress.percentage}%`);
             },
@@ -215,13 +212,9 @@ function App() {
           };
 
           console.log('Video metadata:', metadata);
+          console.log('Blob URL:', blob.url);
 
           // Send blob URL to analysis endpoint
-          console.log('Sending to analysis endpoint:', {
-            url: blob.url,
-            metadata
-          });
-
           analysisResponse = await fetch(apiUrl, {
             method: 'POST',
             headers: {

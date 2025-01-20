@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { VideoAnalyzer } from './services/videoAnalyzer';
 import { GeminiAnalyzer } from './services/geminiAnalyzer';
-import { put, getToken } from '@vercel/blob';
+import { put } from '@vercel/blob';
 
 // Load environment variables
 dotenv.config();
@@ -162,27 +162,15 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
   }
 });
 
-// Update Blob upload endpoint for token generation
+// Update Blob upload endpoint for client uploads
 app.post('/api/upload', async (req, res) => {
   try {
     console.log('Received upload request');
-    console.log('Query parameters:', req.query);
     console.log('Headers:', req.headers);
     console.log('Environment variables:', {
       BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN ? 'Present' : 'Missing',
       BLOB_READ_WRITE_TOKEN_GENERATED_AT: process.env.BLOB_READ_WRITE_TOKEN_GENERATED_AT ? 'Present' : 'Missing'
     });
-
-    const { filename, contentType } = req.query;
-    
-    if (!filename || !contentType) {
-      console.log('Missing parameters:', { filename, contentType });
-      return res.status(400).json({ 
-        error: 'Missing required parameters',
-        message: 'filename and contentType are required query parameters',
-        received: { filename, contentType }
-      });
-    }
 
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
       console.error('BLOB_READ_WRITE_TOKEN is not set');
@@ -192,19 +180,20 @@ app.post('/api/upload', async (req, res) => {
       });
     }
 
-    console.log('Attempting to generate token for:', { filename, contentType });
-    const token = await getToken({
-      pathname: filename as string,
-      contentType: contentType as string,
-    });
+    // Return a simple success response for preflight
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
 
-    console.log('Token generated successfully');
-    res.json(token);
+    // Return the client token for upload
+    res.json({
+      clientToken: process.env.BLOB_READ_WRITE_TOKEN
+    });
   } catch (error) {
-    console.error('Detailed error in token generation:', error);
+    console.error('Detailed error in upload configuration:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ 
-      error: 'Failed to generate upload token',
+      error: 'Failed to configure upload',
       details: error instanceof Error ? error.message : 'Unknown error',
       type: error instanceof Error ? error.constructor.name : typeof error
     });
