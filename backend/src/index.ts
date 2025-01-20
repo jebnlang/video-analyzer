@@ -131,16 +131,20 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
         });
       }
       videoContent = req.file.buffer;
-    } else if (req.body.url) {
+    } else if (req.body.videoUrl) {
+      console.log('Fetching video from URL:', req.body.videoUrl);
       // Handle both direct URLs and Blob URLs
-      const response = await fetch(req.body.url);
+      const response = await fetch(req.body.videoUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch video from URL: ${response.statusText}`);
       }
       const arrayBuffer = await response.arrayBuffer();
       videoContent = Buffer.from(arrayBuffer);
     } else {
-      return res.status(400).json({ error: 'No video content provided' });
+      return res.status(400).json({ 
+        error: 'No video content provided',
+        receivedBody: req.body 
+      });
     }
 
     console.log('Processing video content');
@@ -157,7 +161,8 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
     console.error('Detailed error in Gemini analysis:', error);
     res.status(500).json({ 
       error: 'Error analyzing video with Gemini',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      receivedBody: req.body
     });
   }
 });
