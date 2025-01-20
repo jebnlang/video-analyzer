@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { VideoAnalyzer } from './services/videoAnalyzer';
 import { GeminiAnalyzer } from './services/geminiAnalyzer';
+import { put } from '@vercel/blob';
 
 // Load environment variables
 dotenv.config();
@@ -159,6 +160,31 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
     console.error('Detailed error in Gemini analysis:', error);
     res.status(500).json({ 
       error: 'Error analyzing video with Gemini',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Add Blob upload endpoint
+app.post('/api/upload', async (req, res) => {
+  try {
+    if (!req.body || !req.body.filename) {
+      return res.status(400).json({ error: 'Missing filename in request' });
+    }
+
+    const blob = await put(req.body.filename, req.body, {
+      access: 'public',
+      addRandomSuffix: true,
+    });
+
+    res.json({
+      url: blob.url,
+      success: true
+    });
+  } catch (error) {
+    console.error('Error uploading to blob storage:', error);
+    res.status(500).json({ 
+      error: 'Failed to upload file',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

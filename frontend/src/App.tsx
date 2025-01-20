@@ -175,8 +175,11 @@ function App() {
       let analysisResponse;
 
       if (file) {
-        // Upload to Vercel Blob first
-        const blob = await upload(file.name, file, {
+        const formData = new FormData();
+        formData.append('filename', file.name);
+        formData.append('file', file);
+
+        const blob = await upload(file.name, formData, {
           access: 'public',
           handleUploadUrl: `${baseUrl}/api/upload`,
           onUploadProgress: (progress: { percentage: number }) => {
