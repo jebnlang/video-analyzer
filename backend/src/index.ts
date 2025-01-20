@@ -19,16 +19,34 @@ const upload = multer();
 const videoAnalyzer = new VideoAnalyzer();
 const geminiAnalyzer = new GeminiAnalyzer();
 
-// Middleware
-app.use(cors({
-  origin: [
-    'http://localhost:5173', // Local development
-    'https://video-analyzer-frontend.vercel.app' // Production frontend
-  ],
-  methods: ['GET', 'POST', 'OPTIONS'], // Added OPTIONS for preflight
-  allowedHeaders: ['Content-Type'], // Allow Content-Type header
+// Middleware for logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
+// CORS configuration
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://video-analyzer-frontend.vercel.app'
+    ];
+    console.log('Request origin:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('Origin not allowed:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
@@ -46,12 +64,24 @@ app.post('/api/analyze', upload.single('video'), async (req, res) => {
 // New route using Gemini API
 app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
   try {
+    console.log('Received request for Gemini analysis');
+    console.log('Headers:', req.headers);
+    console.log('File:', req.file ? 'Present' : 'Not present');
+    console.log('Body:', req.body);
+
     const videoContent = req.file ? req.file.buffer : req.body.url;
+    console.log('Processing video content type:', req.file ? 'buffer' : 'url');
+
     const result = await geminiAnalyzer.analyzeVideo(videoContent);
+    console.log('Analysis completed successfully');
+    
     res.json(result);
   } catch (error) {
-    console.error('Error analyzing video with Gemini:', error);
-    res.status(500).json({ error: 'Error analyzing video with Gemini' });
+    console.error('Detailed error in Gemini analysis:', error);
+    res.status(500).json({ 
+      error: 'Error analyzing video with Gemini',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

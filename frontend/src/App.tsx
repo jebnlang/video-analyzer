@@ -111,16 +111,23 @@ function App() {
     setResults(null)
 
     try {
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/analyze/gemini`.replace(/\/\//g, '/').replace('https:/', 'https://');
+      console.log('Sending request to:', apiUrl); // Debug log
+
       const formData = new FormData()
       if (file) {
         formData.append('video', file)
+        console.log('Sending file:', file.name, file.type); // Debug log
       } else if (url) {
         formData.append('url', url)
+        console.log('Sending URL:', url); // Debug log
       } else {
         throw new Error('Please provide a video file or URL')
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analyze/gemini`, {
+      console.log('Request headers:', file ? 'multipart/form-data' : 'application/json'); // Debug log
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: file ? formData : JSON.stringify({ url }),
         headers: file ? undefined : {
@@ -128,13 +135,19 @@ function App() {
         },
       })
 
+      console.log('Response status:', response.status); // Debug log
+      console.log('Response headers:', Object.fromEntries(response.headers.entries())); // Debug log
+
       if (!response.ok) {
-        throw new Error('Failed to analyze video')
+        const errorText = await response.text();
+        console.error('Error response:', errorText); // Debug log
+        throw new Error(`Failed to analyze video: ${response.status} ${errorText}`);
       }
 
       const data = await response.json()
       setResults(data)
     } catch (err) {
+      console.error('Full error:', err); // Debug log
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
