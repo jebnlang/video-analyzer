@@ -13,7 +13,12 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Configure multer for file uploads
-const upload = multer();
+const upload = multer({
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB in bytes
+    files: 1
+  }
+});
 
 // Initialize Video Analyzer
 const videoAnalyzer = new VideoAnalyzer();
@@ -21,6 +26,11 @@ const geminiAnalyzer = new GeminiAnalyzer();
 
 // Middleware for logging
 app.use((req, res, next) => {
+  // Set higher limit for express json body parser
+  express.json({ limit: '20mb' });
+  // Set higher limit for url-encoded bodies
+  express.urlencoded({ limit: '20mb', extended: true });
+  
   console.log(`${req.method} ${req.path}`);
   console.log('Headers:', req.headers);
   next();
@@ -67,6 +77,15 @@ app.use(cors(corsOptions));
 // Add error handling middleware
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Error:', err);
+  
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      error: 'File Too Large',
+      message: 'The uploaded file exceeds the 20MB limit',
+      details: err.message
+    });
+  }
+  
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({
       error: 'CORS Error',
@@ -74,7 +93,13 @@ app.use((err: any, req: any, res: any, next: any) => {
       origin: req.headers.origin
     });
   }
-  next(err);
+  
+  // Handle other errors
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: err.message || 'Something went wrong',
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 app.use(express.json());
@@ -96,8 +121,16 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
   try {
     console.log('Received request for Gemini analysis');
     console.log('Headers:', req.headers);
+    console.log('File size:', req.file?.size);
     console.log('File:', req.file ? 'Present' : 'Not present');
     console.log('Body:', req.body);
+
+    if (req.file && req.file.size > 20 * 1024 * 1024) {
+      return res.status(413).json({
+        error: 'File Too Large',
+        message: 'The uploaded file exceeds the 20MB limit'
+      });
+    }
 
     const videoContent = req.file ? req.file.buffer : req.body.url;
     console.log('Processing video content type:', req.file ? 'buffer' : 'url');

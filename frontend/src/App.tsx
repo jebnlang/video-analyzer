@@ -89,7 +89,7 @@ interface VideoAnalysisResult {
 }
 
 // Add size constants
-const MAX_FILE_SIZE = 19.9 * 1024 * 1024; // 19.9MB in bytes
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
 const SUPPORTED_FORMATS = [
   'video/mp4',
   'video/quicktime', // .mov files
