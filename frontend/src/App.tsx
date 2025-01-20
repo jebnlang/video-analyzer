@@ -12,12 +12,17 @@ import {
   Alert,
   Stack,
   IconButton,
-  InputAdornment
+  InputAdornment,
+  Tooltip,
+  CardContent,
+  LinearProgress
 } from '@mui/material'
 import { 
   CloudUpload as CloudUploadIcon,
   Link as LinkIcon,
-  Clear as ClearIcon 
+  Clear as ClearIcon,
+  FileCopy as FileCopyIcon,
+  Timer as TimerIcon
 } from '@mui/icons-material'
 import { styled } from '@mui/material/styles'
 
@@ -33,6 +38,14 @@ const VisuallyHiddenInput = styled('input')({
   whiteSpace: 'nowrap',
   width: 1,
 })
+
+const ScoreProgress = styled(LinearProgress)({
+  height: 10,
+  borderRadius: 5,
+  '& .MuiLinearProgress-bar': {
+    transition: 'transform 0.5s ease-in-out',
+  },
+});
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -75,6 +88,17 @@ interface VideoAnalysisResult {
   };
 }
 
+// Add size constants
+const MAX_FILE_SIZE = 19.9 * 1024 * 1024; // 19.9MB in bytes
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 function App() {
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState('')
@@ -84,9 +108,17 @@ function App() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-      setUrl('')
-      setError(null)
+      const selectedFile = e.target.files[0];
+      
+      // Check file size
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        setError(`File size exceeds 19.9MB limit. Your file is ${formatFileSize(selectedFile.size)}`);
+        return;
+      }
+
+      setFile(selectedFile);
+      setUrl('');
+      setError(null);
     }
   }
 
@@ -260,18 +292,53 @@ function App() {
           </Stack>
         </StyledPaper>
 
+        {/* Results Display */}
+        {results && (
+          <Box sx={{ mt: 4 }}>
+            <StyledPaper elevation={3}>
+              <CardContent>
+                <Stack spacing={2}>
+                  <Typography variant="h5" gutterBottom>
+                    Overall Score: {results.overallScore.toFixed(1)}/10
+                  </Typography>
+                  <ScoreProgress
+                    variant="determinate"
+                    value={results.overallScore * 10}
+                    color={results.overallScore >= 7 ? 'success' : results.overallScore >= 5 ? 'warning' : 'error'}
+                  />
+                  {/* File Information */}
+                  {results.metadata && (
+                    <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
+                      <Tooltip title="File Size" arrow>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <FileCopyIcon color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {results.metadata.fileSize}
+                          </Typography>
+                        </Stack>
+                      </Tooltip>
+                      <Tooltip title="Duration" arrow>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <TimerIcon color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {results.metadata.duration}
+                          </Typography>
+                        </Stack>
+                      </Tooltip>
+                    </Stack>
+                  )}
+                </Stack>
+              </CardContent>
+            </StyledPaper>
+            <AnalysisResults results={results} />
+          </Box>
+        )}
+
         {/* Error Display */}
         {error && (
           <Alert severity="error" variant="filled">
             {error}
           </Alert>
-        )}
-
-        {/* Results Display */}
-        {results && (
-          <Box sx={{ mt: 4 }}>
-            <AnalysisResults results={results} />
-          </Box>
         )}
       </Stack>
     </Container>
