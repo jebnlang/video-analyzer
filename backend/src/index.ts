@@ -20,7 +20,14 @@ const videoAnalyzer = new VideoAnalyzer();
 const geminiAnalyzer = new GeminiAnalyzer();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Local development
+    'https://video-analyzer-sooty.vercel.app', // Production frontend
+  ],
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes

@@ -120,7 +120,7 @@ function App() {
         throw new Error('Please provide a video file or URL')
       }
 
-      const response = await fetch('http://localhost:3001/api/analyze/gemini', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analyze/gemini`, {
         method: 'POST',
         body: file ? formData : JSON.stringify({ url }),
         headers: file ? undefined : {
