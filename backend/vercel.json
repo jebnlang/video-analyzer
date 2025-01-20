@@ -8,12 +8,12 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/(.*)",
       "dest": "src/index.ts"
     }
   ],
   "functions": {
-    "src/index.ts": {
+    "src/**/*": {
       "memory": 1024,
       "maxDuration": 60
     }
