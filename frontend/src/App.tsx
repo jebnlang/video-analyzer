@@ -99,6 +99,17 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+const formatDuration = (durationInSeconds: number): string => {
+  const hours = Math.floor(durationInSeconds / 3600);
+  const minutes = Math.floor((durationInSeconds % 3600) / 60);
+  const seconds = Math.floor(durationInSeconds % 60);
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
 function App() {
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState('')
@@ -143,21 +154,38 @@ function App() {
     setResults(null)
 
     try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/analyze/gemini`.replace(/\/\//g, '/').replace('https:/', 'https://');
-      console.log('Sending request to:', apiUrl); // Debug log
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/analyze/gemini`;
+      console.log('Sending request to:', apiUrl);
 
       const formData = new FormData()
+      let metadata = null;
+
       if (file) {
-        formData.append('video', file)
-        console.log('Sending file:', file.name, file.type); // Debug log
+        // Create a video element to get duration
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = URL.createObjectURL(file);
+        
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            URL.revokeObjectURL(video.src);
+            resolve(null);
+          };
+        });
+
+        formData.append('video', file);
+        
+        // Prepare metadata
+        metadata = {
+          fileSize: formatFileSize(file.size),
+          duration: formatDuration(Math.floor(video.duration || 0))
+        };
       } else if (url) {
         formData.append('url', url)
-        console.log('Sending URL:', url); // Debug log
+        console.log('Sending URL:', url);
       } else {
         throw new Error('Please provide a video file or URL')
       }
-
-      console.log('Request headers:', file ? 'multipart/form-data' : 'application/json'); // Debug log
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -167,19 +195,20 @@ function App() {
         },
       })
 
-      console.log('Response status:', response.status); // Debug log
-      console.log('Response headers:', Object.fromEntries(response.headers.entries())); // Debug log
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText); // Debug log
+        console.error('Error response:', errorText);
         throw new Error(`Failed to analyze video: ${response.status} ${errorText}`);
       }
 
-      const data = await response.json()
-      setResults(data)
+      const data = await response.json();
+      if (metadata) {
+        data.metadata = metadata;
+      }
+      
+      setResults(data);
     } catch (err) {
-      console.error('Full error:', err); // Debug log
+      console.error('Full error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)

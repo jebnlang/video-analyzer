@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   LinearProgress,
   Chip,
@@ -22,11 +20,6 @@ const ScoreProgress = styled(LinearProgress)({
   borderRadius: 5,
 });
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  borderRadius: theme.shape.borderRadius,
-}));
-
 interface CategoryScore {
   score: number;
   details: string[];
@@ -43,6 +36,10 @@ interface VideoAnalysisResult {
   presentation: CategoryScore;
   overallScore: number;
   suggestions: string[];
+  metadata?: {
+    fileSize: string;
+    duration: string;
+  };
 }
 
 interface AnalysisResultsProps {
@@ -72,19 +69,6 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => {
 
   return (
     <Box sx={{ mt: 4 }}>
-      <StyledCard>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            Overall Score: {results.overallScore.toFixed(1)}/10
-          </Typography>
-          <ScoreProgress
-            variant="determinate"
-            value={results.overallScore * 10}
-            color={results.overallScore >= 7 ? 'success' : results.overallScore >= 5 ? 'warning' : 'error'}
-          />
-        </CardContent>
-      </StyledCard>
-
       {categories.map((category) => {
         const categoryData = results[category as keyof VideoAnalysisResult] as CategoryScore;
         const score = categoryData.score;
