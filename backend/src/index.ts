@@ -23,9 +23,10 @@ const geminiAnalyzer = new GeminiAnalyzer();
 app.use(cors({
   origin: [
     'http://localhost:5173', // Local development
-    'https://video-analyzer-sooty.vercel.app', // Production frontend
+    'https://video-analyzer-sooty.vercel.app' // Production frontend
   ],
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'], // Added OPTIONS for preflight
+  allowedHeaders: ['Content-Type'], // Allow Content-Type header
   credentials: true
 }));
 app.use(express.json());
