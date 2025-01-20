@@ -11,7 +11,6 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
-const port = process.env.PORT || 3001;
 
 // Configure multer for file uploads
 const upload = multer({
@@ -28,9 +27,9 @@ const geminiAnalyzer = new GeminiAnalyzer();
 // Middleware for logging
 app.use((req, res, next) => {
   // Set higher limit for express json body parser
-  express.json({ limit: '20mb' });
+  app.use(express.json({ limit: '20mb' }));
   // Set higher limit for url-encoded bodies
-  express.urlencoded({ limit: '20mb', extended: true });
+  app.use(express.urlencoded({ limit: '20mb', extended: true }));
   
   console.log(`${req.method} ${req.path}`);
   console.log('Headers:', req.headers);
@@ -102,8 +101,6 @@ app.use((err: any, req: any, res: any, next: any) => {
     details: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
-
-app.use(express.json());
 
 // Routes
 app.post('/api/analyze', upload.single('video'), async (req, res) => {
@@ -192,7 +189,5 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-}); 
+// Export the Express app for Vercel
+export default app; 
