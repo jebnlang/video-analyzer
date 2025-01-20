@@ -11,5 +11,14 @@
       "src": "/api/(.*)",
       "dest": "src/index.ts"
     }
-  ]
+  ],
+  "functions": {
+    "src/index.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "bodyParser": {
+    "sizeLimit": "20mb"
+  }
 } 
