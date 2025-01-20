@@ -12,6 +12,17 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
+// Configure middleware
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
+
+// Middleware for logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // Configure multer for file uploads
 const upload = multer({
   limits: {
