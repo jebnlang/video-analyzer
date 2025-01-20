@@ -1,24 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "src/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "src/index.ts"
-    }
-  ],
   "functions": {
-    "src/index.ts": {
+    "api/**": {
       "memory": 1024,
       "maxDuration": 60
     }
-  },
-  "bodyParser": {
-    "sizeLimit": "20mb"
   }
 } 

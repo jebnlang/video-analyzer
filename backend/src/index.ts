@@ -166,13 +166,15 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
 });
 
 // Add Blob upload endpoint
-app.post('/api/upload', async (req, res) => {
+app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
-    if (!req.body || !req.body.filename) {
-      return res.status(400).json({ error: 'Missing filename in request' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const blob = await put(req.body.filename, req.body, {
+    const filename = req.body.filename || req.file.originalname;
+    
+    const blob = await put(filename, req.file.buffer, {
       access: 'public',
       addRandomSuffix: true,
     });
