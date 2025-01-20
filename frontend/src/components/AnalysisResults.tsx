@@ -10,7 +10,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Divider,
   Grid,
   styled
 } from '@mui/material';
@@ -18,10 +17,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import BuildIcon from '@mui/icons-material/Build';
 
-const ScoreProgress = styled(LinearProgress)(({ theme }) => ({
+const ScoreProgress = styled(LinearProgress)({
   height: 10,
   borderRadius: 5,
-}));
+});
 
 const StyledCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(2),
