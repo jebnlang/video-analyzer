@@ -166,7 +166,9 @@ function App() {
     setResults(null)
 
     try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/analyze/gemini`;
+      // Remove trailing slash from VITE_API_URL if present
+      const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '');
+      const apiUrl = `${baseUrl}/api/analyze/gemini`;
       console.log('Sending request to:', apiUrl);
 
       const formData = new FormData()
