@@ -1,0 +1,120 @@
+﻿AI Video Review Scoring Tool – Product Specification
+1. Overview
+We aim to create an internal web-based tool that determines how well a video meets the criteria for a “good video review.” The core functionality revolves around:
+        1.        Uploading or providing a URL for a video.
+        2.        Sending that video to Google Cloud Video Intelligence (GCP VI) for analysis.
+        3.        Using our defined criteria to generate:
+        •        Individual scores for each review metric (e.g., Introduction, Structure, Audio Quality).
+        •        An aggregated overall score summarizing the video’s effectiveness as a review.
+The tool is intended for internal experimentation and data gathering to see if we can formally define a “good review” in a programmatic way.
+2. Key Objectives
+        1.        Programmatic Evaluation: Automatically assess a video’s adherence to our “perfect review” criteria.
+        2.        Score Generation: Provide both per-metric scores and a final aggregated score in a clean, user-friendly format.
+        3.        Minimalistic UI: Offer a straightforward, single-page application that even non-technical team members can use.
+3. User Flow & High-Level Functionality
+        1.        Video Input
+        •        Option A: URL
+        •        User pastes a direct link to a publicly accessible video (e.g., YouTube, Vimeo).
+        •        Option B: File Upload
+        •        User uploads a local video file (common formats like MP4, MOV, AVI).
+        2.        Processing & Analysis
+        •        The system sends the video (or video reference) to Google Cloud Video Intelligence for initial analysis, which may include:
+        •        Speech-to-text (transcription)
+        •        Label detection or shot analysis (for content structure)
+        •        Possibly object or face detection (if relevant to production/engagement)
+        •        The backend runs custom logic on the GCP VI results to derive our defined review criteria scores.
+        3.        Scoring & Display
+        •        System calculates scores for each metric (e.g., 1 to 5 scale) and an overall aggregated score.
+        •        The frontend displays these metrics and final score in a simple, readable format (bars, stars, or numeric).
+4. Review Criteria
+We will grade each video across several core categories. Each category can be scored (e.g., on a 1–5 scale), then combined into an overall average or weighted score.
+        1.        Introduction & Purpose
+        •        Checks if the reviewer clearly states the video’s purpose in the first few moments.
+        •        Looks for a concise product or subject introduction.
+        2.        Structure & Organization
+        •        Measures logical flow from one topic to another (pros, cons, summary).
+        •        Assesses presence of transitions or signposts in the speech or visual cues (detected by GCP VI transcript and scene changes).
+        3.        Content Balance (Pros & Cons)
+        •        Identifies if the reviewer mentions both positive and negative points.
+        •        Looks for the words or phrases from a predefined “positive/negative vocabulary” set in the transcript.
+        4.        Presentation & Engagement
+        •        Evaluates vocal clarity (volume and pace) and some measure of enthusiasm or energy (possible via audio amplitude analysis).
+        •        Checks the ratio or frequency of scene changes or relevant B-roll references (shots detection from GCP VI).
+        5.        Authenticity & Credibility
+        •        Detects if personal anecdotes or disclaimers (words like “sponsored,” “my experience,” etc.) appear in the transcript.
+        •        Highlights transparency markers (e.g., “I received this product for free,” “This is my honest opinion”).
+        6.        Production Quality
+        •        Basic check of audio quality (low background noise, consistent volume).
+        •        Considers lighting and video clarity via GCP VI label detection (this can be a simplified heuristic, e.g., if the scene is too dark).
+        7.        Accuracy & Fact-Checking
+        •        (Future Enhancement) Possibly cross-verify key product data (price, specs) using an external API or dataset.
+        •        Currently, a placeholder score derived from whether the reviewer cites specific numerical/statistical info (detected in the transcript).
+        8.        Conclusion & Final Verdict
+        •        Confirms the presence of a concluding statement or recommendation (e.g., “I recommend,” “Avoid,” “Final thoughts”).
+        •        Scores clarity in summarizing main points.
+5. Architecture & Technical Requirements
+5.1 Frontend
+        •        Framework/Stack: Simple HTML/JavaScript (optionally React, Vue, or Angular if needed).
+        •        UI Elements:
+        1.        Video Input
+        •        Text field for URL
+        •        File upload button (with size checks)
+        2.        Submit Button
+        •        Triggers the backend call to start analysis
+        3.        Results Panel
+        •        Displays a breakdown of the scores (per metric)
+        •        Shows an aggregated final score
+        •        Optional bar chart or star rating for visualization
+        4.        Error Messages
+        •        For invalid URLs, unsupported file formats, or upload issues
+5.2 Backend
+        •        Language: Python (Flask or FastAPI), Node.js (Express), or similar.
+        •        Endpoints:
+        1.        POST /analyze
+        •        Accepts video URL or uploaded file.
+        •        Initiates GCP VI call.
+        2.        GET /results/:videoId (if asynchronous)
+        •        Returns the analysis results and scores.
+        •        Process Flow:
+        1.        Video Source Handling
+        •        If URL, store the link.
+        •        If file, handle temporary upload to an internal server or push to GCP Storage.
+        2.        GCP VI Analysis
+        •        Use relevant endpoints: speech-to-text, shot change detection, labeling.
+        •        Parse JSON response.
+        3.        Scoring Logic
+        •        Apply heuristics to transcript, scenes, and metadata.
+        •        Calculate each metric score.
+        •        Generate final aggregated score.
+        4.        Data Storage (Optional)
+        •        Could store results in a simple database (e.g., Postgres, Firebase) for historical referencing.
+5.3 Google Cloud Video Intelligence (GCP VI)
+        •        APIs to Use:
+        •        Video Intelligence API (speechTranscription, labelDetection, shotChangeDetection).
+        •        Required Credentials:
+        •        GCP project with enabled Video Intelligence API.
+        •        Service account key for server-side calls.
+5.4 Security & Access
+        •        Internal Only:
+        •        Restrict access to the LAN/VPN environment or use simple login for authorized team members.
+        •        API Keys:
+        •        Store GCP credentials securely (e.g., environment variables or secrets manager).
+6. Output & Reporting
+After processing, the Results Panel should display:
+        1.        Per-Metric Scores (1–5 scale or 0–100):
+        •        Introduction & Purpose
+        •        Structure & Organization
+        •        Content Balance
+        •        Presentation & Engagement
+        •        Authenticity & Credibility
+        •        Production Quality
+        •        Accuracy & Fact-Checking (if available)
+        •        Conclusion & Final Verdict
+        2.        Aggregated Overall Score (e.g., an average or weighted sum of the above categories).
+        3.        Optional Suggestions
+        •        A bullet list with short improvement points (e.g., “Increase vocal energy,” “Use clearer transitions,” “Mention disclaimers”).
+7. Limitations & Future Enhancements
+        •        Speech-to-Text Accuracy: Dependent on the clarity of audio and GCP VI’s transcription quality.
+        •        Subjectivity: Definitions of “good review” remain somewhat subjective; the tool’s scoring logic may need periodic adjustments.
+        •        Fact-Checking: Automatic verification of factual statements is not fully implemented; initial version will focus on presence/mention.
+        •        Multilingual Support: If required, ensure GCP VI language options are configured for languages other than English.
