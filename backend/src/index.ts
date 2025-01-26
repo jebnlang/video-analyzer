@@ -126,32 +126,56 @@ app.post('/api/analyze', upload.single('video'), async (req, res) => {
 });
 
 // New route using Gemini API
-app.post('/api/analyze/gemini', async (req, res) => {
-  console.log('\n=== /api/analyze/gemini endpoint called ===');
-  console.log('Request body:', req.body);
-  
+app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
   try {
-    const { url, videoUrl, metadata, productDescription } = req.body;
-    const videoSource = videoUrl || url;
+    console.log('Received request for Gemini analysis');
+    console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
 
-    if (!videoSource) {
-      throw new Error('No video URL provided');
+    let videoContent;
+    const productDescription = req.body.productDescription || '';
+    
+    if (req.file) {
+      if (req.file.size > 20 * 1024 * 1024) {
+        return res.status(413).json({
+          error: 'File Too Large',
+          message: 'The uploaded file exceeds the 20MB limit'
+        });
+      }
+      videoContent = req.file.buffer;
+    } else if (req.body.videoUrl) {
+      console.log('Fetching video from URL:', req.body.videoUrl);
+      // Handle both direct URLs and Blob URLs
+      const response = await fetch(req.body.videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video from URL: ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      videoContent = Buffer.from(arrayBuffer);
+    } else {
+      return res.status(400).json({ 
+        error: 'No video content provided',
+        receivedBody: req.body 
+      });
     }
 
-    console.log('Video source:', videoSource);
-    console.log('Product description:', productDescription || 'Not provided');
-
-    const analyzer = new GeminiAnalyzer();
-    const results = await analyzer.analyzeVideo(videoSource, productDescription);
-
-    if (metadata) {
-      results.metadata = metadata;
+    console.log('Processing video content');
+    const result = await geminiAnalyzer.analyzeVideo(videoContent, productDescription);
+    console.log('Analysis completed successfully');
+    
+    // If metadata was provided, include it in the response
+    if (req.body.metadata) {
+      result.metadata = req.body.metadata;
     }
-
-    res.json(results);
+    
+    res.json(result);
   } catch (error) {
-    console.error('Error in /api/analyze/gemini:', error);
-    res.status(500).send(error instanceof Error ? error.message : 'An unknown error occurred');
+    console.error('Detailed error in Gemini analysis:', error);
+    res.status(500).json({ 
+      error: 'Error analyzing video with Gemini',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      receivedBody: req.body
+    });
   }
 });
 

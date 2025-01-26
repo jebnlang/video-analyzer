@@ -224,7 +224,7 @@ function App() {
             body: JSON.stringify({ 
               videoUrl: blob.url,
               metadata,
-              productDescription: productDescription || undefined
+              productDescription
             }),
           });
         } catch (uploadError) {
@@ -237,10 +237,7 @@ function App() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
-            url,
-            productDescription: productDescription || undefined 
-          }),
+          body: JSON.stringify({ url, productDescription }),
         });
       } else {
         throw new Error('Please provide a video file or URL')
@@ -267,120 +264,117 @@ function App() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 8 }}>
-      <Stack spacing={4}>
-        <StyledPaper elevation={3}>
-          <Stack spacing={3}>
-            <Typography variant="h4" component="h1" align="center" gutterBottom>
-              Video Review Analyzer
-            </Typography>
-            
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                {/* Product Description Field */}
-                <TextField
-                  label="Product Description (Optional)"
-                  placeholder="Enter the product or service being reviewed"
-                  multiline
-                  rows={3}
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  fullWidth
-                />
-
-                {/* File Upload Section */}
-                <Box>
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<CloudUploadIcon />}
-                    sx={{ 
-                      width: '100%',
-                      height: '100px',
-                      border: '2px dashed',
-                      borderRadius: 2,
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                        border: '2px dashed #1976d2',
-                      }
-                    }}
-                  >
-                    {file ? (
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography variant="body1" color="primary">
-                          {file.name}
-                        </Typography>
-                        <IconButton size="small" onClick={clearFile}>
-                          <ClearIcon />
-                        </IconButton>
-                      </Stack>
-                    ) : (
-                      <Typography variant="body1" color="text.secondary">
-                        Drop your video file here or click to browse
-                      </Typography>
-                    )}
-                    <VisuallyHiddenInput
-                      type="file"
-                      accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
-                      onChange={handleFileChange}
-                    />
-                  </Button>
-                </Box>
-
-                {/* URL Input Section */}
-                <Typography variant="body1" align="center" color="text.secondary">
-                  - OR -
-                </Typography>
-
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Enter video URL here"
-                  value={url}
-                  onChange={handleUrlChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LinkIcon color="action" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: url && (
-                      <InputAdornment position="end">
-                        <IconButton size="small" onClick={clearUrl}>
-                          <ClearIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                />
-
-                {/* Submit Button */}
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center">
+          Video Review Analyzer
+        </Typography>
+        <StyledPaper>
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              {/* File Upload Section */}
+              <Box>
                 <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={loading || (!file && !url)}
-                  sx={{
-                    py: 1.5,
-                    backgroundColor: 'primary.main',
+                  component="label"
+                  variant="outlined"
+                  startIcon={<CloudUploadIcon />}
+                  sx={{ 
+                    width: '100%',
+                    height: '100px',
+                    border: '2px dashed',
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease-in-out',
                     '&:hover': {
-                      backgroundColor: 'primary.dark',
-                    },
-                    '&:disabled': {
-                      backgroundColor: 'action.disabledBackground',
-                    },
+                      backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                      border: '2px dashed #1976d2',
+                    }
                   }}
                 >
-                  {loading ? (
-                    <CircularProgress size={24} color="inherit" />
+                  {file ? (
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body1" color="primary">
+                        {file.name}
+                      </Typography>
+                      <IconButton size="small" onClick={clearFile}>
+                        <ClearIcon />
+                      </IconButton>
+                    </Stack>
                   ) : (
-                    'Analyze Video'
+                    <Typography variant="body1" color="text.secondary">
+                      Drop your video file here or click to browse
+                    </Typography>
                   )}
+                  <VisuallyHiddenInput
+                    type="file"
+                    accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                    onChange={handleFileChange}
+                  />
                 </Button>
-              </Stack>
-            </form>
-          </Stack>
+              </Box>
+
+              {/* URL Input Section */}
+              <Typography variant="body1" align="center" color="text.secondary">
+                - OR -
+              </Typography>
+
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Enter video URL here"
+                value={url}
+                onChange={handleUrlChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LinkIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: url && (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={clearUrl}>
+                        <ClearIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Product Description (Optional)"
+                placeholder="Enter the description of the product being reviewed"
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
+                variant="outlined"
+              />
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={loading || (!file && !url)}
+                sx={{
+                  py: 1.5,
+                  backgroundColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                  '&:disabled': {
+                    backgroundColor: 'action.disabledBackground',
+                  },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Analyze Video'
+                )}
+              </Button>
+            </Stack>
+          </form>
         </StyledPaper>
 
         {/* Results Display */}
@@ -431,7 +425,7 @@ function App() {
             {error}
           </Alert>
         )}
-      </Stack>
+      </Box>
     </Container>
   )
 }
