@@ -186,6 +186,11 @@ Overall Assessment: [Brief assessment]
 
 Remember: A review's value to the merchant is based on how well it helps potential customers make informed decisions or provides actionable feedback for improvement.`;
 
+      console.log('\nPrompt Details:');
+      console.log('Context Prefix:', contextPrefix);
+      console.log('Full Prompt Length:', prompt.length);
+      console.log('First 200 characters of prompt:', prompt.substring(0, 200));
+
       console.log('\nSending request to Gemini API...');
       const result = await this.model.generateContent([prompt, videoData]);
       const response = await result.response;
@@ -200,11 +205,14 @@ Remember: A review's value to the merchant is based on how well it helps potenti
       const analysisResult = this.processGeminiResponse(text);
       
       // Add the prompt to the raw data
+      console.log('\nAdding prompt to raw data...');
       analysisResult.rawData = {
         ...analysisResult.rawData,
         prompt,
         geminiResponse: text
       };
+      console.log('Raw data prompt length:', analysisResult.rawData.prompt?.length || 0);
+      console.log('Raw data response length:', analysisResult.rawData.geminiResponse?.length || 0);
 
       console.log('\n=== Gemini Analysis Results ===');
       console.log(`Overall Score: ${analysisResult.overallScore.toFixed(2)}`);

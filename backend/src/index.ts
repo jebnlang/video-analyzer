@@ -167,6 +167,12 @@ app.post('/api/analyze/gemini', upload.single('video'), async (req, res) => {
     if (req.body.metadata) {
       result.metadata = req.body.metadata;
     }
+
+    console.log('\nAPI Response Details:');
+    console.log('Has rawData:', !!result.rawData);
+    console.log('Has prompt in rawData:', !!result.rawData?.prompt);
+    console.log('Prompt length:', result.rawData?.prompt?.length || 0);
+    console.log('Response length:', result.rawData?.geminiResponse?.length || 0);
     
     res.json(result);
   } catch (error) {

@@ -259,6 +259,12 @@ function App() {
         data.metadata = metadata;
       }
       
+      console.log('\nFrontend Results Data:');
+      console.log('Has rawData:', !!data.rawData);
+      console.log('Has prompt in rawData:', !!data.rawData?.prompt);
+      console.log('Prompt length:', data.rawData?.prompt?.length || 0);
+      console.log('Response length:', data.rawData?.geminiResponse?.length || 0);
+      
       setResults(data);
     } catch (err) {
       console.error('Full error:', err);
