@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { VideoAnalysisResult } from './videoAnalyzer';
+import fetch from 'node-fetch';
 
 export class GeminiAnalyzer {
   private model: any;
@@ -9,25 +10,42 @@ export class GeminiAnalyzer {
     this.model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
   }
 
+  private async fetchVideoContent(url: string): Promise<Buffer> {
+    console.log('\nFetching video content from URL:', url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch video: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
   async analyzeVideo(videoContent: Buffer | string, productDescription?: string): Promise<VideoAnalysisResult> {
     try {
       console.log('\n=== Starting Gemini Video Analysis ===');
       
+      let processedContent: Buffer;
+      
+      if (typeof videoContent === 'string') {
+        // If it's a URL, fetch the content first
+        processedContent = await this.fetchVideoContent(videoContent);
+      } else {
+        processedContent = videoContent;
+      }
+
       // Check file size
-      if (Buffer.isBuffer(videoContent)) {
-        const sizeInMB = videoContent.length / (1024 * 1024);
-        console.log(`Video size: ${sizeInMB.toFixed(2)} MB`);
-        
-        if (sizeInMB > 19) {
-          throw new Error('Video file is too large. Please use a video smaller than 19MB or provide a URL.');
-        }
+      const sizeInMB = processedContent.length / (1024 * 1024);
+      console.log(`Video size: ${sizeInMB.toFixed(2)} MB`);
+      
+      if (sizeInMB > 19) {
+        throw new Error('Video file is too large. Please use a video smaller than 19MB.');
       }
 
       console.log('\nPreparing video data for Gemini API...');
       const mimeType = 'video/mp4';
       const videoData = {
         inlineData: {
-          data: Buffer.isBuffer(videoContent) ? videoContent.toString('base64') : videoContent,
+          data: processedContent.toString('base64'),
           mimeType
         }
       };
