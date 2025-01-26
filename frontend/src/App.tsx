@@ -90,6 +90,7 @@ interface VideoAnalysisResult {
     shots: any[];
     textDetection: any[];
     objectDetection: any[];
+    prompt: string;
   };
 }
 
@@ -446,7 +447,7 @@ function App() {
                         fontFamily: 'monospace'
                       }}
                     >
-                      {results.rawData?.geminiResponse?.split('Please analyze the video review')[0] || 'Prompt not available'}
+                      {results.rawData?.prompt || 'Prompt not available'}
                     </Typography>
                   </Paper>
                 </AccordionDetails>

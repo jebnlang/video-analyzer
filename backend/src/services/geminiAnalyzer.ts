@@ -198,6 +198,13 @@ Remember: A review's value to the merchant is based on how well it helps potenti
 
       console.log('\nProcessing Gemini response...');
       const analysisResult = this.processGeminiResponse(text);
+      
+      // Add the prompt to the raw data
+      analysisResult.rawData = {
+        ...analysisResult.rawData,
+        prompt,
+        geminiResponse: text
+      };
 
       console.log('\n=== Gemini Analysis Results ===');
       console.log(`Overall Score: ${analysisResult.overallScore.toFixed(2)}`);

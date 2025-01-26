@@ -24,6 +24,7 @@ export interface VideoAnalysisResult {
   };
   rawData: {
     geminiResponse: string;
+    prompt?: string;
     labels: string[];
     transcript: string;
     shots: any[];
@@ -210,6 +211,7 @@ export class VideoAnalyzer {
       },
       rawData: {
         geminiResponse: '',
+        prompt: '',
         labels: labels.map(l => l.entity?.description || '').filter(Boolean),
         transcript: transcript,
         shots,
