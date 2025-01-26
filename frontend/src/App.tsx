@@ -120,6 +120,7 @@ const formatDuration = (durationInSeconds: number): string => {
 function App() {
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState('')
+  const [productDescription, setProductDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<VideoAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -222,7 +223,8 @@ function App() {
             },
             body: JSON.stringify({ 
               videoUrl: blob.url,
-              metadata 
+              metadata,
+              productDescription: productDescription || undefined
             }),
           });
         } catch (uploadError) {
@@ -235,7 +237,10 @@ function App() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ 
+            url,
+            productDescription: productDescription || undefined 
+          }),
         });
       } else {
         throw new Error('Please provide a video file or URL')
@@ -272,6 +277,17 @@ function App() {
             
             <form onSubmit={handleSubmit}>
               <Stack spacing={3}>
+                {/* Product Description Field */}
+                <TextField
+                  label="Product Description (Optional)"
+                  placeholder="Enter the product or service being reviewed"
+                  multiline
+                  rows={3}
+                  value={productDescription}
+                  onChange={(e) => setProductDescription(e.target.value)}
+                  fullWidth
+                />
+
                 {/* File Upload Section */}
                 <Box>
                   <Button

@@ -9,7 +9,7 @@ export class GeminiAnalyzer {
     this.model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
   }
 
-  async analyzeVideo(videoContent: Buffer | string): Promise<VideoAnalysisResult> {
+  async analyzeVideo(videoContent: Buffer | string, productDescription?: string): Promise<VideoAnalysisResult> {
     try {
       console.log('\n=== Starting Gemini Video Analysis ===');
       
@@ -33,7 +33,11 @@ export class GeminiAnalyzer {
       };
 
       console.log('Preparing prompt for Gemini...');
-      const prompt = `You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The goal is to determine if each review is effective, regardless of whether it's positive or negative. A good review is one that provides value to the merchant - even a 1-star review can be excellent if it offers clear, actionable feedback. Remember, these are amateur reviews. Do not penalize reviewers for minor technical issues, lack of professional editing, or less polished presentation styles. Focus on the substance of their feedback and its potential value to the merchant. Prioritize actionable feedback that the merchant can use to improve their product or service.
+      const contextPrefix = productDescription 
+        ? `You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The video you are about to analyze is reviewing the following product/service:\n\n${productDescription}\n\nKeep this product context in mind while analyzing the review. The goal is to determine if each review is effective, regardless of whether it's positive or negative.`
+        : `You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The goal is to determine if each review is effective, regardless of whether it's positive or negative.`;
+
+      const prompt = `${contextPrefix} A good review is one that provides value to the merchant - even a 1-star review can be excellent if it offers clear, actionable feedback. Remember, these are amateur reviews. Do not penalize reviewers for minor technical issues, lack of professional editing, or less polished presentation styles. Focus on the substance of their feedback and its potential value to the merchant. Prioritize actionable feedback that the merchant can use to improve their product or service.
 
 Please analyze the video review based on the following criteria. For each section, provide your analysis in this exact format:
 
