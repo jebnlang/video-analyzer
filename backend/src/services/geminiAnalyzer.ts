@@ -34,10 +34,19 @@ export class GeminiAnalyzer {
 
       console.log('Preparing prompt for Gemini...');
       const contextPrefix = productDescription 
-        ? `You are analyzing a video review for the following product:\n${productDescription}\n\n` 
-        : '';
+        ? `You are analyzing a video review for the following product:\n${productDescription}\n\nSince we know the exact product being reviewed, please evaluate how well the review addresses this specific product's features, benefits, and potential issues.\n\n`
+        : `You are analyzing a video review where the product being reviewed is not specified beforehand. It is CRUCIAL that the review clearly identifies what product is being reviewed. A review that doesn't make it clear what's being reviewed should receive lower scores in clarity and relevance.\n\n`;
       
-      const prompt = `${contextPrefix}You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The goal is to determine if each review is effective, regardless of whether it's positive or negative. A good review is one that provides value to the merchant - even a 1-star review can be excellent if it offers clear, actionable feedback. Remember, these are amateur reviews. Do not penalize reviewers for minor technical issues, lack of professional editing, or less polished presentation styles. Focus on the substance of their feedback and its potential value to the merchant. Prioritize actionable feedback that the merchant can use to improve their product or service.
+      const prompt = `${contextPrefix}You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The goal is to determine if each review is effective, regardless of whether it's positive or negative. A good review is one that provides value to the merchant - even a 1-star review can be excellent if it offers clear, actionable feedback.
+
+Scoring Guidelines:
+${productDescription 
+  ? `- Since we know the product context, focus on how well the review addresses the specific product
+- High scores should be given to reviews that thoroughly discuss the product's features and performance
+- The review should ideally address key aspects of this particular product` 
+  : `- Without product context, the review MUST clearly identify what is being reviewed
+- High scores should only be given if the viewer can immediately understand what product is being reviewed
+- The review should establish the product context early and clearly`}
 
 Please analyze the video review based on the following criteria. For each section, provide your analysis in this exact format:
 
@@ -60,8 +69,9 @@ Sections to analyze:
 *   Is the content easy to follow?
 *   Are key points clearly explained?
 *   Are specific examples or demonstrations used to illustrate points?
+${productDescription ? '' : '*   Does the review clearly identify the product being reviewed?'}
 
-**Amateur Review Considerations:** Even if the reviewer doesn't use professional terminology or perfectly structure their sentences, consider if the core message is understandable. Minor stumbles or pauses are acceptable. Focus on whether the viewer can grasp the essential information.
+**Amateur Review Considerations:** Even if the reviewer doesn't use professional terminology or perfectly structure their sentences, consider if the core message is understandable. Minor stumbles or pauses are acceptable. Focus on whether the viewer can grasp the essential information${productDescription ? ' about this specific product' : ' and clearly understand what product is being reviewed'}.
 
 **Output Format:**
 
@@ -81,7 +91,7 @@ Overall Assessment: [Brief assessment]
 *   How well does it maintain viewer attention?
 *   Does the reviewer convey their message with sufficient enthusiasm or clarity to hold the viewer's attention, considering they are likely not a professional presenter?
 *   Does it keep viewers interested?
-* Does the reviewer appear enthusiastic and/or credible (keeping in mind they are likely an amateur)?
+*   Does the reviewer appear enthusiastic and/or credible (keeping in mind they are likely an amateur)?
 
 **Amateur Review Considerations:** It's unlikely an amateur reviewer will have the charisma of a professional presenter. Look for genuine enthusiasm and a clear attempt to connect with the viewer. Minor nervousness or awkwardness should not be heavily penalized.
 
@@ -104,8 +114,9 @@ Overall Assessment: [Brief assessment]
 *   Is all content relevant to the review?
 *   Does it meet merchant needs by providing useful information?
 *   Does the review focus on specific features or aspects of the product/service?
+${productDescription ? '*   Does the review adequately cover the key aspects of this specific product?' : '*   Is the product being reviewed clearly identified and described?'}
 
-**Amateur Review Considerations:** A rambling or slightly off-topic review can still contain valuable insights. Focus on whether the reviewer ultimately provides information that is relevant to the product or service, even if they take a less direct approach.
+**Amateur Review Considerations:** A rambling or slightly off-topic review can still contain valuable insights. Focus on whether the reviewer ultimately provides information that is relevant to the product or service${productDescription ? ', particularly addressing the specific product being reviewed' : ', and clearly establishes what product they are reviewing'}.
 
 **Output Format:**
 
@@ -125,7 +136,8 @@ Overall Assessment: [Brief assessment]
 *   What valuable insights are provided?
 *   Are claims well supported (even if not with formal evidence)?
 *   Is key information included?
-* If applicable, is there a balanced presentation of positive and negative aspects?
+*   If applicable, is there a balanced presentation of positive and negative aspects?
+${productDescription ? '*   Does the review provide specific information about this product\'s features and performance?' : '*   Does the review provide enough context about the product for viewers to understand what is being reviewed?'}
 
 **Amateur Review Considerations:** Amateur reviewers may not have access to technical data or conduct rigorous testing. Focus on whether their claims are based on their personal experience and whether they provide sufficient context for their opinions. A balanced review is always preferred, but even a strongly positive or negative review can be valuable if it provides clear reasoning.
 
@@ -146,6 +158,7 @@ Overall Assessment: [Brief assessment]
 
 *   Is the visual and audio quality adequate for understanding the review's content?
 *   Are there any significant distractions (e.g., excessive noise, poor lighting) that hinder comprehension?
+${productDescription ? '*   Can the specific product being reviewed be clearly seen and understood?' : '*   Can viewers clearly see what product is being reviewed?'}
 
 **Amateur Review Considerations:** These are amateur reviews. Expecting professional lighting, sound, or editing is unrealistic. Focus on whether the video and audio are clear enough to understand the reviewer's message. Minor background noise or slightly shaky camera work should not be heavily penalized unless they significantly detract from the review's clarity. If the content is valuable, give the reviewer credit even with basic technical imperfections.
 
@@ -167,24 +180,12 @@ Overall Assessment: [Brief assessment]
 *   Does the review have a clear beginning, middle, and end?
 *   Is the flow logical, even if it's not perfectly polished?
 *   Is the style appropriate for the target audience (keeping in mind the likely amateur nature of both the reviewer and the viewers)?
-* Are visual aids or on-screen text used effectively?
+*   Are visual aids or on-screen text used effectively?
+${productDescription ? '*   Is the presentation effective in showcasing this specific product?' : '*   Does the presentation make it clear what product is being reviewed?'}
 
 **Amateur Review Considerations:** A perfectly structured presentation is unlikely. Look for a basic attempt to organize the review logically. Minor digressions or a less-than-perfect conclusion are acceptable.
 
-**Output Format:**
-
-**Presentation (X/10)**
-Good Points:
-- [Point 1]
-- [Point 2]
-- [Point 3]
-Improvement Points:
-- [Point 1]
-- [Point 2]
-- [Point 3]
-Overall Assessment: [Brief assessment]
-
-Remember: A review's value to the merchant is based on how well it helps potential customers make informed decisions or provides actionable feedback for improvement.`;
+Remember: A review's value to the merchant is based on how well it helps potential customers make informed decisions or provides actionable feedback for improvement${productDescription ? ', specifically about this product' : ', and clearly establishes what product is being reviewed'}.`;
 
       console.log('\nPrompt Details:');
       console.log('Context Prefix:', contextPrefix);
