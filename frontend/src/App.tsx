@@ -15,14 +15,18 @@ import {
   InputAdornment,
   Tooltip,
   CardContent,
-  LinearProgress
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material'
 import { 
   CloudUpload as CloudUploadIcon,
   Link as LinkIcon,
   Clear as ClearIcon,
   FileCopy as FileCopyIcon,
-  Timer as TimerIcon
+  Timer as TimerIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material'
 import { styled } from '@mui/material/styles'
 import { upload } from '@vercel/blob/client'
@@ -380,42 +384,103 @@ function App() {
         {/* Results Display */}
         {results && (
           <Box sx={{ mt: 4 }}>
-            <StyledPaper elevation={3}>
-              <CardContent>
-                <Stack spacing={2}>
-                  <Typography variant="h5" gutterBottom>
-                    Overall Score: {results.overallScore.toFixed(1)}/10
+            <Stack spacing={2}>
+              <StyledPaper elevation={3}>
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Typography variant="h5" gutterBottom>
+                      Overall Score: {results.overallScore.toFixed(1)}/10
+                    </Typography>
+                    <ScoreProgress
+                      variant="determinate"
+                      value={results.overallScore * 10}
+                      color={results.overallScore >= 7 ? 'success' : results.overallScore >= 5 ? 'warning' : 'error'}
+                    />
+                    {/* File Information */}
+                    {results.metadata && (
+                      <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
+                        <Tooltip title="File Size" arrow>
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <FileCopyIcon color="action" />
+                            <Typography variant="body2" color="text.secondary">
+                              {results.metadata.fileSize}
+                            </Typography>
+                          </Stack>
+                        </Tooltip>
+                        <Tooltip title="Duration" arrow>
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <TimerIcon color="action" />
+                            <Typography variant="body2" color="text.secondary">
+                              {results.metadata.duration}
+                            </Typography>
+                          </Stack>
+                        </Tooltip>
+                      </Stack>
+                    )}
+                  </Stack>
+                </CardContent>
+              </StyledPaper>
+              <AnalysisResults results={results} />
+              
+              {/* Debug Information */}
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Prompt Used
                   </Typography>
-                  <ScoreProgress
-                    variant="determinate"
-                    value={results.overallScore * 10}
-                    color={results.overallScore >= 7 ? 'success' : results.overallScore >= 5 ? 'warning' : 'error'}
-                  />
-                  {/* File Information */}
-                  {results.metadata && (
-                    <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
-                      <Tooltip title="File Size" arrow>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <FileCopyIcon color="action" />
-                          <Typography variant="body2" color="text.secondary">
-                            {results.metadata.fileSize}
-                          </Typography>
-                        </Stack>
-                      </Tooltip>
-                      <Tooltip title="Duration" arrow>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <TimerIcon color="action" />
-                          <Typography variant="body2" color="text.secondary">
-                            {results.metadata.duration}
-                          </Typography>
-                        </Stack>
-                      </Tooltip>
-                    </Stack>
-                  )}
-                </Stack>
-              </CardContent>
-            </StyledPaper>
-            <AnalysisResults results={results} />
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Paper 
+                    sx={{ 
+                      p: 2, 
+                      backgroundColor: 'grey.100',
+                      maxHeight: '400px',
+                      overflow: 'auto'
+                    }}
+                  >
+                    <Typography
+                      component="pre"
+                      sx={{
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        fontFamily: 'monospace'
+                      }}
+                    >
+                      {results.rawData?.geminiResponse?.split('Please analyze the video review')[0] || 'Prompt not available'}
+                    </Typography>
+                  </Paper>
+                </AccordionDetails>
+              </Accordion>
+
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Raw API Response
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Paper 
+                    sx={{ 
+                      p: 2, 
+                      backgroundColor: 'grey.100',
+                      maxHeight: '400px',
+                      overflow: 'auto'
+                    }}
+                  >
+                    <Typography
+                      component="pre"
+                      sx={{
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        fontFamily: 'monospace'
+                      }}
+                    >
+                      {JSON.stringify(results, null, 2)}
+                    </Typography>
+                  </Paper>
+                </AccordionDetails>
+              </Accordion>
+            </Stack>
           </Box>
         )}
 
