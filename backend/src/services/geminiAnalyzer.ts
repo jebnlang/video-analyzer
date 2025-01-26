@@ -33,7 +33,7 @@ export class GeminiAnalyzer {
       };
 
       console.log('Preparing prompt for Gemini...');
-      const prompt = `You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The goal is to determine if each review is effective, regardless of whether it's positive or negative. A good review is one that provides value to the merchant - even a 1-star review can be excellent if it offers clear, actionable feedback.
+      const prompt = `You are analyzing video reviews for a product manager at a company that gathers video reviews for its customers. The goal is to determine if each review is effective, regardless of whether it's positive or negative. A good review is one that provides value to the merchant - even a 1-star review can be excellent if it offers clear, actionable feedback. Remember, these are amateur reviews. Do not penalize reviewers for minor technical issues, lack of professional editing, or less polished presentation styles. Focus on the substance of their feedback and its potential value to the merchant. Prioritize actionable feedback that the merchant can use to improve their product or service.
 
 Please analyze the video review based on the following criteria. For each section, provide your analysis in this exact format:
 
@@ -42,49 +42,145 @@ Good Points:
 - [Point 1]
 - [Point 2]
 - [Point 3]
-
 Improvement Points:
 - [Point 1]
 - [Point 2]
 - [Point 3]
-
 Overall Assessment: [Brief assessment]
 
 Sections to analyze:
 
-1. Clarity
-- How well is the main message communicated?
-- Is the content easy to follow?
-- Are key points clearly explained?
+**1. Clarity (X/10)**
 
-2. Engagement
-- How well does it maintain viewer attention?
-- Is the presentation style compelling?
-- Does it keep viewers interested?
+*   How well is the main message communicated?
+*   Is the content easy to follow?
+*   Are key points clearly explained?
+*   Are specific examples or demonstrations used to illustrate points?
 
-3. Relevance
-- How well does it address the product/service?
-- Is all content relevant to the review?
-- Does it meet merchant needs?
+**Amateur Review Considerations:** Even if the reviewer doesn't use professional terminology or perfectly structure their sentences, consider if the core message is understandable. Minor stumbles or pauses are acceptable. Focus on whether the viewer can grasp the essential information.
 
-4. Informative Content
-- What valuable insights are provided?
-- Are claims well supported?
-- Is key information included?
+**Output Format:**
 
-5. Visuals and Audio Quality
-- How professional is the production?
-- Are technical aspects well executed?
-- Is the quality consistent?
+**Clarity (X/10)**
+Good Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Improvement Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Overall Assessment: [Brief assessment]
 
-6. Presentation
-- How well does the review flow?
-- Is the structure effective?
-- Is the style appropriate for the audience?
+**2. Engagement (X/10)**
 
-Remember: A review's value to the merchant is based on how well it helps potential customers make informed decisions or provides actionable feedback for improvement.
+*   How well does it maintain viewer attention?
+*   Does the reviewer convey their message with sufficient enthusiasm or clarity to hold the viewer's attention, considering they are likely not a professional presenter?
+*   Does it keep viewers interested?
+* Does the reviewer appear enthusiastic and/or credible (keeping in mind they are likely an amateur)?
 
-Please ensure each section follows the exact format specified above, with clear bullet points for both good points and improvement points.`;
+**Amateur Review Considerations:** It's unlikely an amateur reviewer will have the charisma of a professional presenter. Look for genuine enthusiasm and a clear attempt to connect with the viewer. Minor nervousness or awkwardness should not be heavily penalized.
+
+**Output Format:**
+
+**Engagement (X/10)**
+Good Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Improvement Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Overall Assessment: [Brief assessment]
+
+**3. Relevance (X/10)**
+
+*   How well does it address the product/service?
+*   Is all content relevant to the review?
+*   Does it meet merchant needs by providing useful information?
+*   Does the review focus on specific features or aspects of the product/service?
+
+**Amateur Review Considerations:** A rambling or slightly off-topic review can still contain valuable insights. Focus on whether the reviewer ultimately provides information that is relevant to the product or service, even if they take a less direct approach.
+
+**Output Format:**
+
+**Relevance (X/10)**
+Good Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Improvement Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Overall Assessment: [Brief assessment]
+
+**4. Informative Content (X/10)**
+
+*   What valuable insights are provided?
+*   Are claims well supported (even if not with formal evidence)?
+*   Is key information included?
+* If applicable, is there a balanced presentation of positive and negative aspects?
+
+**Amateur Review Considerations:** Amateur reviewers may not have access to technical data or conduct rigorous testing. Focus on whether their claims are based on their personal experience and whether they provide sufficient context for their opinions. A balanced review is always preferred, but even a strongly positive or negative review can be valuable if it provides clear reasoning.
+
+**Output Format:**
+
+**Informative Content (X/10)**
+Good Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Improvement Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Overall Assessment: [Brief assessment]
+
+**5. Visuals and Audio Quality (X/10)**
+
+*   Is the visual and audio quality adequate for understanding the review's content?
+*   Are there any significant distractions (e.g., excessive noise, poor lighting) that hinder comprehension?
+
+**Amateur Review Considerations:** These are amateur reviews. Expecting professional lighting, sound, or editing is unrealistic. Focus on whether the video and audio are clear enough to understand the reviewer's message. Minor background noise or slightly shaky camera work should not be heavily penalized unless they significantly detract from the review's clarity. If the content is valuable, give the reviewer credit even with basic technical imperfections.
+
+**Output Format:**
+
+**Visuals and Audio Quality (X/10)**
+Good Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Improvement Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Overall Assessment: [Brief assessment]
+
+**6. Presentation (X/10)**
+
+*   Does the review have a clear beginning, middle, and end?
+*   Is the flow logical, even if it's not perfectly polished?
+*   Is the style appropriate for the target audience (keeping in mind the likely amateur nature of both the reviewer and the viewers)?
+* Are visual aids or on-screen text used effectively?
+
+**Amateur Review Considerations:** A perfectly structured presentation is unlikely. Look for a basic attempt to organize the review logically. Minor digressions or a less-than-perfect conclusion are acceptable.
+
+**Output Format:**
+
+**Presentation (X/10)**
+Good Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Improvement Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+Overall Assessment: [Brief assessment]
+
+Remember: A review's value to the merchant is based on how well it helps potential customers make informed decisions or provides actionable feedback for improvement.`;
 
       console.log('\nSending request to Gemini API...');
       const result = await this.model.generateContent([prompt, videoData]);
